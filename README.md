@@ -1,205 +1,139 @@
-# Playwright + Gemini Browser Automation
+# AI Browser Control
 
-Control your browser with natural language using Playwright and Google's Gemini API.
+A browser automation system powered by Google's Gemini AI that provides an overlay interface for controlling any webpage using natural language commands.
 
-## Features
+## 📁 Project Structure
 
-- 🎯 Natural language browser control
-- ⌨️ Text input support
-- 🤖 AI-powered action interpretation via Gemini
-- 🔄 Multi-step automation sequences
-- 📋 Automatic page context extraction
-- 🖥️ Both CLI and GUI interfaces
-
-## Prerequisites
-
-- Python 3.8+
-- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
-
-## Installation
-
-### 1. Clone or download the project files
-
-### 2. Install Python dependencies
-
-```bash
-pip install -r requirements.txt
+```
+├── app.py                  # Main Flask application (entry point)
+├── browser_controller.py   # Coordinates browser and AI operations
+├── web_manager.py          # Playwright browser automation
+├── ai_agent.py            # Gemini AI integration
+├── html_templates.py      # HTML/CSS/JS for overlay and landing page
+├── config.py              # Configuration and environment variables
+├── requirements.txt       # Python dependencies
+├── .env                   # Environment variables (create from .env.example)
+└── .env.example          # Template for environment variables
 ```
 
-### 3. Install Playwright browsers
-```bash
-playwright install chromium
-```
+## 🚀 Setup
 
-### 4. Set up your Gemini API key
+1. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Create a `.env` file:
-```bash
-cp .env.example .env
-```
+2. **Install Playwright browsers:**
+   ```bash
+   playwright install chromium
+   ```
 
-Edit `.env` and add your API key:
-```
-GEMINI_API_KEY=your-actual-api-key-here
-```
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your GEMINI_API_KEY
+   ```
 
-Or set it as an environment variable:
-```bash
-export GEMINI_API_KEY=your-actual-api-key-here
-```
+4. **Run the application:**
+   ```bash
+   python app.py
+   ```
 
-## Usage
+5. **Open your browser:**
+   Navigate to `http://127.0.0.1:5000`
 
-### Web Interface with Overlay (Recommended - Best Experience!)
+## 🎯 Features
 
-```bash
-python playwright_gemini_web.py
-```
+- **Natural Language Control**: Command your browser using plain English
+- **AI-Powered**: Gemini AI interprets commands and generates actions
+- **Overlay Interface**: Non-intrusive overlay on any webpage
+- **Quick Actions**: Pre-built buttons for common tasks
+- **Page Simplification**: Remove clutter and focus on content
 
-Then open http://localhost:5000 in your browser to start.
+## 📝 Usage
 
-**Features:**
-- 🎨 Beautiful floating overlay on any webpage
-- ⌨️ Text input field for commands
-- 🎯 Quick action buttons (scroll, back, simplify)
-- ✨ **Simplify page** for cognitive accessibility
-- 🔄 **Restore original** HTML anytime
-- 📱 Works on top of any website
+### Starting the Browser
+1. Open `http://127.0.0.1:5000` in your browser
+2. Click "Start Browser"
+3. A new browser window opens with the AI control overlay
 
-### Command Line Version
+### Executing Commands
+Type natural language commands like:
+- "Search for Python tutorials"
+- "Click the login button"
+- "Scroll down"
+- "Navigate to github.com"
 
-```bash
-python playwright_gemini_automation.py
-```
+### Quick Actions
+- **Scroll Down/Up**: Navigate the page
+- **Go Back**: Return to previous page
+- **Simplify**: Remove ads and clutter
 
-Interactive terminal-based control - type commands directly.
+## 🔧 Configuration
 
-### GUI Version (Separate Window)
+Edit `config.py` to customize:
+- Flask host and port
+- Browser settings (headless mode, flags)
+- Timeouts for operations
+- API keys
 
-```bash
-python playwright_gemini_gui.py
-```
+## 🛡️ Error Handling
 
-Opens a separate window with browser controls.
+All errors are logged with clear prefixes showing their origin:
+- `ERROR [Config]`: Configuration issues
+- `ERROR [AIAgent]`: AI/Gemini errors
+- `ERROR [WebManager]`: Browser automation errors
+- `ERROR [BrowserController]`: Coordination errors
+- `ERROR [app]`: Flask application errors
 
-## Example Commands
+## 📦 Module Descriptions
 
-Once running, try these commands:
+### `app.py`
+- Flask web server
+- HTTP routes (`/start`, `/execute`, `/simplify`, `/restore`)
+- Request handling and error responses
 
-- `"search for cats"` - Types in search box and submits
-- `"click the first search result"` - Clicks first result
-- `"go to youtube.com"` - Navigates to YouTube
-- `"scroll down"` - Scrolls the page down
-- `"type hello world in the search box"` - Enters text
-- `"click the login button"` - Finds and clicks login
+### `browser_controller.py`
+- High-level controller
+- Coordinates WebManager and AIAgent
+- Manages command execution flow
 
-## Accessibility Features (Web Version)
+### `web_manager.py`
+- Playwright browser automation
+- Page interaction (click, type, scroll, navigate)
+- Overlay injection
+- Page simplification
 
-The web interface includes a **Simplify** button that transforms any webpage for cognitive accessibility:
+### `ai_agent.py`
+- Gemini AI integration
+- Command interpretation
+- Action generation from natural language
 
-**What it does:**
-- ✨ Removes distracting elements (ads, popups, sidebars)
-- 📝 Increases font size to 18px
-- 📐 Improves line spacing and readability
-- 🎨 Simplifies colors to high contrast
-- 🔲 Removes animations and complex layouts
-- 💾 **Saves original HTML** before simplification
-- 🔄 One-click restore to original
+### `html_templates.py`
+- Landing page HTML
+- Overlay HTML/CSS/JavaScript
+- All frontend code in one place
 
-**Perfect for users with:**
-- Cognitive impairments
-- Reading difficulties
-- Attention challenges
-- Visual processing issues
+### `config.py`
+- Environment variables
+- Application settings
+- Configuration validation
 
-Click "Simplify" in the overlay or say `"simplify this page"` to activate!
+## 🔍 Troubleshooting
 
-## How It Works
+**Browser won't start:**
+- Check if Playwright is installed: `playwright install chromium`
+- Verify GEMINI_API_KEY is set in .env
 
-1. **Command Input**: You provide a natural language command (voice or text)
-2. **Context Extraction**: The system extracts current page info (URL, buttons, inputs)
-3. **AI Interpretation**: Gemini converts your command into structured actions
-4. **Execution**: Playwright executes the actions on the browser
+**Commands not working:**
+- Check console output for error messages
+- All errors show which module they originated from
+- Ensure the browser window is visible (not minimized)
 
-## Action Format
+**Overlay not appearing:**
+- Check browser console for JavaScript errors
+- Ensure CORS is enabled in browser
 
-Gemini returns actions in this JSON format:
+## 📄 License
 
-```json
-[
-    {
-        "action": "click",
-        "selector": "button.login",
-        "description": "Click login button"
-    },
-    {
-        "action": "type",
-        "selector": "input[name='email']",
-        "value": "user@example.com",
-        "description": "Enter email"
-    }
-]
-```
-
-Supported actions:
-- `click` - Click an element
-- `type` - Type text into input
-- `navigate` - Go to URL
-- `wait` - Wait for milliseconds
-- `scroll` - Scroll up/down
-
-## Customization
-
-### Modify the Gemini Prompt
-
-Edit the `send_to_gemini()` method to customize how commands are interpreted.
-
-### Add New Actions
-
-Extend the `execute_actions()` method to support additional action types.
-
-### Change Browser Settings
-
-Modify `start_browser()` to change headless mode, viewport size, etc:
-
-```python
-await controller.start_browser(headless=True)  # Run without visible browser
-```
-
-## Troubleshooting
-
-**"ModuleNotFoundError: No module named 'playwright'"**
-```bash
-pip install playwright
-playwright install chromium
-```
-
-**Gemini API errors:**
-- Verify your API key is correct in `.env` file
-- Check your API quota at [Google AI Studio](https://makersuite.google.com)
-- Make sure you have the `GEMINI_API_KEY` environment variable set
-
-**Playwright errors:**
-- Run `playwright install chromium` to download browsers
-- Check browser compatibility
-- Try running with `headless=True` in the code
-
-**Element not found:**
-- The AI may need better page context
-- Try being more specific in your command
-- Inspect the page to verify elements exist
-- Check the activity log to see what selectors were tried
-
-## Security Notes
-
-- Never commit your `.env` file with real API keys
-- Be careful when automating actions on sensitive sites
-- This tool has full browser control - use responsibly
-
-## License
-
-MIT License - feel free to modify and use as needed.
-
-## Contributing
-
-Suggestions and improvements welcome! This is a base implementation designed to be extended.
+MIT License - feel free to modify and use as needed!
