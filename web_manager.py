@@ -7,6 +7,7 @@ import asyncio
 from playwright.async_api import async_playwright
 from config import Config
 from html_templates import get_overlay_script
+from actions import BrowserActions, ActionExecutor
 
 class WebManager:
     """Manages browser instance and page interactions"""
@@ -19,6 +20,7 @@ class WebManager:
         self.loop = None
         self.original_html = {}
         self.playwright_instance = None
+        self.action_executor = None  # Will be initialized after browser starts
         print("✓ WebManager initialized")
     
     async def start_browser(self):
@@ -46,6 +48,10 @@ class WebManager:
             
             # Set up page load event listener
             self.page.on("load", lambda: asyncio.create_task(self._on_page_load()))
+            
+            # Initialize action executor with the page
+            browser_actions = BrowserActions(self.page)
+            self.action_executor = ActionExecutor(browser_actions)
             
             print("✓ Browser started successfully")
             
@@ -102,90 +108,11 @@ class WebManager:
         Returns:
             bool: True if all actions succeeded, False otherwise
         """
-        for i, action in enumerate(actions, 1):
-            act = action.get("action")
-            sel = action.get("selector")
-            val = action.get("value")
-            desc = action.get("description", "")
-            
-            print(f"[{i}] {desc}")
-            
-            try:
-                if act == "error":
-                    print(f"✗ AI Error: {desc}")
-                    return False
-                
-                elif act == "navigate":
-                    await self._action_navigate(val)
-                
-                elif act == "click":
-                    await self._action_click(sel)
-                
-                elif act == "type":
-                    await self._action_type(sel, val)
-                
-                elif act == "wait":
-                    await self._action_wait(val)
-                
-                elif act == "scroll":
-                    await self._action_scroll(val)
-                
-                else:
-                    print(f"✗ Unknown action: {act}")
-                    return False
-                
-                # Small delay between actions
-                await asyncio.sleep(0.5)
-                
-            except Exception as e:
-                print(f"✗ ERROR [WebManager.execute_actions]: Failed to execute '{act}' - {str(e)}")
-                return False
-        
-        print("✓ All actions completed successfully")
-        return True
-    
-    async def _action_navigate(self, url):
-        """Navigate to a URL"""
         try:
-            await self.page.goto(url)
-            await self.page.wait_for_load_state("networkidle")
+            return await self.action_executor.execute(actions)
         except Exception as e:
-            raise Exception(f"ERROR [WebManager._action_navigate]: Navigation failed - {str(e)}")
-    
-    async def _action_click(self, selector):
-        """Click an element by selector or text"""
-        try:
-            try:
-                # Try CSS selector first
-                await self.page.click(selector, timeout=Config.CLICK_TIMEOUT)
-            except:
-                # Fall back to text matching
-                await self.page.get_by_text(selector).first.click(timeout=Config.CLICK_TIMEOUT)
-        except Exception as e:
-            raise Exception(f"ERROR [WebManager._action_click]: Click failed on '{selector}' - {str(e)}")
-    
-    async def _action_type(self, selector, text):
-        """Type text into an input field"""
-        try:
-            await self.page.fill(selector, text)
-        except Exception as e:
-            raise Exception(f"ERROR [WebManager._action_type]: Type failed on '{selector}' - {str(e)}")
-    
-    async def _action_wait(self, milliseconds):
-        """Wait for specified time"""
-        try:
-            seconds = int(milliseconds) / 1000
-            await asyncio.sleep(seconds)
-        except Exception as e:
-            raise Exception(f"ERROR [WebManager._action_wait]: Wait failed - {str(e)}")
-    
-    async def _action_scroll(self, direction):
-        """Scroll the page up or down"""
-        try:
-            pixels = 500 if direction.lower() == "down" else -500
-            await self.page.evaluate(f"window.scrollBy(0, {pixels})")
-        except Exception as e:
-            raise Exception(f"ERROR [WebManager._action_scroll]: Scroll failed - {str(e)}")
+            print(f"ERROR [WebManager.execute_actions]: {str(e)}")
+            return False
     
     async def simplify_page(self):
         """

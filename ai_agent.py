@@ -14,7 +14,7 @@ class AIAgent:
         """Initialize the AI agent with Gemini"""
         try:
             genai.configure(api_key=Config.GEMINI_API_KEY)
-            self.model = genai.GenerativeModel("gemini-3-flash-preview")
+            self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
             print("✓ AI Agent initialized successfully")
         except Exception as e:
             raise Exception(f"ERROR [AIAgent.__init__]: Failed to initialize Gemini - {str(e)}")
