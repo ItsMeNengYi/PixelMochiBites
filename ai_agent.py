@@ -41,6 +41,7 @@ class AIAgent:
         {{"url": "https://example.com", "description": "Navigating to example"}}
         """
         try:
+            print(f"→ Sending to Gemini for URL navigation: {user_command}")
             # Using generation_config to enforce JSON mode
             response = self.model.generate_content(
                 prompt,
@@ -49,7 +50,7 @@ class AIAgent:
             
             # Parse the JSON string from Gemini into a Python dictionary
             result = json.loads(response.text)
-            
+            print(f"✓ Gemini URL response: {result}")
             # Safety check: Ensure the keys exist
             return {
                 "url": result.get("url"),
@@ -146,4 +147,3 @@ Rules:
             
         except Exception as e:
             raise Exception(f"ERROR [AIAgent._parse_response]: Invalid response format - {str(e)}")
-        

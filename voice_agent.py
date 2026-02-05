@@ -12,6 +12,8 @@ class VoiceAssistant:
         self._counter_lock = threading.Lock()
         self.muted = False
         self.mic_muted = False
+        self.callback = None
+        self.stop_listening_fn = None
 
     @property
     def is_speaking(self):
@@ -54,7 +56,7 @@ class VoiceAssistant:
     
     def listen_blocking(self):
         if self.mic_muted:
-            return
+            return None
         """Standard blocking listen: Stops code execution until speech is found."""
         with sr.Microphone() as source:
             self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
@@ -68,6 +70,8 @@ class VoiceAssistant:
         if self.mic_muted:
             return
         """Starts a background worker that listens in parallel without freezing code."""
+        self.callback = callback
+        
         m = sr.Microphone()
         with m as source:
             self.recognizer.adjust_for_ambient_noise(source)
@@ -75,8 +79,6 @@ class VoiceAssistant:
         # This returns a function that stops the background listener
         self.stop_listening_fn = self.recognizer.listen_in_background(m, self._bg_callback)
         print("📡 Background listening active...")
-
-        self.callback = callback
 
     def _bg_callback(self, recognizer, audio):
         """Internal callback for the background worker."""
@@ -86,8 +88,8 @@ class VoiceAssistant:
         try:
             text = recognizer.recognize_google(audio)
             print(f"👂 (BG) Heard: {text}")
-            self.last_recognized_text = text
-            self.callback(text)
+            if self.callback:
+                self.callback(text)
         except:
             pass
 

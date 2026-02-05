@@ -181,7 +181,7 @@ def get_landing_page_html():
 
     <script>
         function announceWelcome() {
-            fetch('/speak?text=Welcome to your AI Assistance. How would you like to interact with me? Can you, See, Hea ,or Both? , Click Tab to switch button, enter to click button', {method: 'POST'});
+            fetch('/speak?text=Welcome to your AI Assistance. How would you like to interact with me? Can you, See, Hear, or Both? Click Tab to switch button, enter to click button', {method: 'POST'});
         }
 
         function speak(label) {
@@ -194,7 +194,6 @@ def get_landing_page_html():
 
         function button_select(choice) {
             fetch(`/button_select?text=${choice}`, {method: 'POST'});
-            // Add redirection logic here
         }
 
         setInterval(() => {
@@ -276,13 +275,13 @@ def get_select_interact_page_html():
     <div class="btn-container">
         <button class="action-btn" 
                 onfocus="button_select('Keyboard')" 
-                onclick="button_click('keyboard');">
+                onclick="button_click('keyboard')">
             keyboard
         </button>
         
         <button class="action-btn" 
                 onfocus="button_select('Speech')" 
-                onclick="button_click('speech');)">
+                onclick="button_click('speech')">
             speech
         </button>
     </div>
@@ -302,13 +301,11 @@ def get_select_interact_page_html():
         }
         
         function button_click(choice) {
-            fetch(`/button_click?text=${choice}`, {method: 'POST'})
-            // Add redirection logic here
+            fetch(`/button_click?text=${choice}`, {method: 'POST'});
         }
 
         function button_select(choice) {
             fetch(`/button_select?text=${choice}`, {method: 'POST'});
-            // Add redirection logic here
         }
 
         setInterval(() => {
@@ -397,15 +394,15 @@ def get_browser_page_html():
 </head>
 <body onload="announceBrowser()">
 
-    <h1>Where would you like to go?</h1>
+    <h1>What would you like to do?</h1>
     
     <div class="browser-container">
         <input type="text" id="urlInput" class="url-input" 
-               placeholder="Type website address here..."
-               onfocus="button_select('Type the website address')">
+               placeholder="Type website address or intention here..."
+               onfocus="button_select('input area')" />
         
         <button class="go-btn" id="goBtn"
-                onfocus="button_select('Go to website')" 
+                onfocus="button_select('Go button')" 
                 onclick="button_click(document.getElementById('urlInput').value)">
             GO
         </button>
@@ -415,17 +412,15 @@ def get_browser_page_html():
 
     <script>
         function announceBrowser() {
-            fetch('/speak?text=Please type the website address or say it out loud.', {method: 'POST'});
+            fetch('/speak?text=Please say your intention loud.', {method: 'POST'});
         }
         
         function button_click(choice) {
-            fetch(`/button_click?text=${choice}`, {method: 'POST'})
-            // Add redirection logic here
+            fetch(`/button_click?text=${choice}`, {method: 'POST'});
         }
 
         function button_select(choice) {
             fetch(`/button_select?text=${choice}`, {method: 'POST'});
-            // Add redirection logic here
         }
 
     </script>

@@ -90,8 +90,13 @@ class BrowserController:
             url (str): URL to navigate to
         """
         try:
+            if self.web_manager.page is None:
+                raise Exception("Browser page not initialized. Call start_browser() first.")
+            
+            print(f"→ Navigating to: {url}")
             await self.web_manager.page.goto(url)
             await self.web_manager.page.wait_for_load_state("networkidle")
+            print(f"✓ Successfully loaded: {url}")
         except Exception as e:
             raise Exception(f"ERROR [BrowserController.navigate_to]: Navigation to '{url}' failed - {str(e)}")
     

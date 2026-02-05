@@ -206,7 +206,6 @@ def restore_page():
 @app.route('/speak', methods=['POST'])
 def speak_action():
     text = request.args.get('text', '')
-    # Use speak_interrupt so it doesn't overlap if they tab quickly
     print(f"→ Speaking: {text}")
     voice_agent.speak(text)
     return jsonify(success=True)
@@ -214,27 +213,30 @@ def speak_action():
 @app.route('/button_select', methods=['POST'])
 def select_route():
     text = request.args.get('text', '')
-    # Use speak_interrupt so it doesn't overlap if they tab quickly
     voice_agent.speak("Focus " + text)
     return jsonify(success=True)
 
 @app.route('/button_click', methods=['POST'])
 def click_route():
-    print("TRIGGERRRR")
+    """Handle button clicks and process navigation"""
     text = request.args.get('text', '')
-    process_navigation(text)
-
+    print(f"Button click received: {text}")
+    
+    # Process the navigation in a background thread
+    thread = Thread(target=lambda: process_navigation(text, voice=False), daemon=True)
+    thread.start()
+    
     return jsonify({"success": True})
 
-
 def voice_callback(text):
+    """Callback for voice recognition"""
     command = text
     print(f"→ Recognized command: {command}")
     if command:
         process_navigation(command, voice=True)
-        voice_agent.last_command = None # Clear it
         
-async def handle_browse(cmd):
+async def handle_browse_async(cmd):
+    """Async version of handle_browse"""
     # Let the AI interpret the command
     nav_data = await ai_agent.navigate_url(cmd)
     
@@ -242,63 +244,90 @@ async def handle_browse(cmd):
     
     if not nav_data['url']:
         return
+    
     url = nav_data['url']
-    try:
-        # Check if browser is already running
-        if controller.web_manager.loop and controller.web_manager.loop.is_running():
-            return 
-        
-        # Create new event loop for browser
-        controller.web_manager.loop = asyncio.new_event_loop()
-        
-        def run_loop():
-            """Run the async event loop in a separate thread"""
-            try:
-                asyncio.set_event_loop(controller.web_manager.loop)
-                controller.web_manager.loop.run_until_complete(controller.start_browser())
-                controller.web_manager.loop.run_until_complete(
-                    controller.navigate_to(url)
-                )
-                controller.web_manager.loop.run_forever()
-            except Exception as e:
-                print(f"ERROR [app.start_browser.run_loop]: Event loop failed - {str(e)}")
-        
-        # Start browser in background thread
-        thread = Thread(target=run_loop, daemon=True)
-        thread.start()
-        
-        # Wait for browser to initialize
-        time.sleep(2)
-        
-        
-    except Exception as e:
-        error_msg = f"ERROR [app.start_browser]: {str(e)}"
-        print(error_msg)
-        voice_agent.speak_block("Failed to start browser.")
+    
+    # Check if browser page is ready
+    if controller.web_manager.page is not None:
+        # Navigate to new URL
+        await controller.navigate_to(url)
+        return
+    
+    # Start new browser and navigate
+    await controller.start_browser()
+    await controller.navigate_to(url)
 
-async def process_navigation(command, voice = False):
+def process_navigation(command, voice=False):
     """Centralized logic for both voice and button inputs."""
     print(f"→ Processing navigation command: {command} (voice={voice})")
 
     current_page = Config.PAGE
     
+    # Handle browsing mode
     if current_page == "/browser":
-        handle_browse(command)
+        # Check if event loop exists and is running
+        if controller.web_manager.loop is not None and controller.web_manager.loop.is_running():
+            # Browser loop already running, just navigate
+            print("→ Using existing browser event loop")
+            future = asyncio.run_coroutine_threadsafe(
+                handle_browse_async(command),
+                controller.web_manager.loop
+            )
+            try:
+                future.result(timeout=15)
+            except Exception as e:
+                print(f"ERROR [process_navigation]: Navigation failed - {str(e)}")
+                voice_agent.speak("Failed to navigate")
+        else:
+            # Need to create new event loop and start browser
+            print("→ Creating new browser event loop")
+            controller.web_manager.loop = asyncio.new_event_loop()
+            
+            def run_loop():
+                """Run the async event loop in a separate thread"""
+                try:
+                    asyncio.set_event_loop(controller.web_manager.loop)
+                    # Run the browse handler and then keep loop alive
+                    controller.web_manager.loop.run_until_complete(handle_browse_async(command))
+                    print("✓ Browser initialized and navigated")
+                    # Keep loop running for future commands
+                    controller.web_manager.loop.run_forever()
+                except Exception as e:
+                    print(f"ERROR [app.run_loop]: Event loop failed - {str(e)}")
+                    voice_agent.speak("Failed to start browser")
+                finally:
+                    # Cleanup
+                    try:
+                        if controller.web_manager.loop.is_running():
+                            controller.web_manager.loop.close()
+                    except:
+                        pass
+            
+            # Start browser in background thread
+            thread = Thread(target=run_loop, daemon=True)
+            thread.start()
+            
+            # Wait for browser to initialize
+            print("→ Waiting for browser to initialize...")
+            time.sleep(3)
         return
     
+    # Parse commands
     if voice:
         cmds = command.split(" ")
     else:
         cmds = [command]
+    
     for command in cmds:
         cmd = command.lower().strip()
         
         # Global 'Back' Logic
         if "back" in cmd:
-            return Config.previous_page()
+            Config.previous_page()
+            voice_agent.speak("Going back")
+            return
 
         # Page-Specific Logic
-        
         if current_page == "/":
             if cmd in ['see', 'hear', 'both']:
                 Config.set_setting('INTERACTION_MODE', cmd)
@@ -308,11 +337,11 @@ async def process_navigation(command, voice = False):
                     voice_agent.unmute()
                 voice_agent.speak(f"Selected {cmd}")
                 time.sleep(1)
-                return Config.next_page()
+                Config.next_page()
+                return
                 
         elif current_page == "/input_selection":
             if cmd in ['keyboard', 'speech']:
-                # Normalize 'voice' and 'speech'
                 Config.set_setting('INPUT_MODE', cmd)
                 if cmd == "keyboard":
                     voice_agent.mute_mic()
@@ -320,16 +349,8 @@ async def process_navigation(command, voice = False):
                     voice_agent.unmute_mic()
                 voice_agent.speak(f"Selected {cmd}")
                 time.sleep(1)
-                return Config.next_page()
-                
-
-    return None # No valid transition found
-
-
-def go_back():
-    voice_agent.speak("Going back")
-    return redirect(Config.previous_page())
-
+                Config.next_page()
+                return
 
 @app.errorhandler(404)
 def not_found(e):
