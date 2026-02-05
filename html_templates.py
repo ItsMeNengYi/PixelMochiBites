@@ -168,29 +168,18 @@ def get_landing_page_html():
 
     <p><b>Can you</b></p>
     <div class="btn-container">
-        <button class="action-btn" onfocus="button_select('See')" onclick="button_click('See')">
+        <button class="action-btn" onfocus="button_select('see')" onclick="button_click('see')">
             1. See
         </button>
-        <button class="action-btn" onfocus="button_select('Hear')" onclick="button_click('Hear')">
+        <button class="action-btn" onfocus="button_select('hear')" onclick="button_click('hear')">
             2. Hear
         </button>
-        <button class="action-btn" onfocus="button_select('Both')" onclick="button_click('Both')">
+        <button class="action-btn" onfocus="button_select('both')" onclick="button_click('both')">
             3. Both
         </button>
     </div>
 
     <script>
-        window.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                // Find the element currently focused by Tab
-                const focusedElement = document.activeElement;
-                
-                // If it's one of our buttons, trigger the click
-                if (focusedElement && focusedElement.classList.contains('action-btn')) {
-                    focusedElement.click();
-                }
-            }
-        });
         function announceWelcome() {
             fetch('/speak?text=Welcome to your AI Assistance. How would you like to interact with me? Can you, See, Hea ,or Both? , Click Tab to switch button, enter to click button', {method: 'POST'});
         }
@@ -198,9 +187,122 @@ def get_landing_page_html():
         function speak(label) {
             fetch(`/speak?text=${label}`, {method: 'POST'});
         }
-
+        
         function button_click(choice) {
             fetch(`/button_click?text=${choice}`, {method: 'POST'});
+        }
+
+        function button_select(choice) {
+            fetch(`/button_select?text=${choice}`, {method: 'POST'});
+            // Add redirection logic here
+        }
+
+        setInterval(() => {
+            fetch('/get_current_state')
+                .then(response => response.json())
+                .then(data => {
+                    const pythonPage = data.current_page;
+                    const browserPage = window.location.pathname;
+
+                    // If Python changed the state, move the browser automatically
+                    if (pythonPage !== browserPage) {
+                        window.location.href = pythonPage;
+                    }
+                });
+        }, 500);
+    </script>
+</body>
+</html>'''
+
+def get_select_interact_page_html():
+    """Returns the HTML for the Input Type selection page"""
+    return '''<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #FFFDE7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            min-height: 100vh;
+        }
+        h1 { font-size: 3rem; margin-bottom: 40px; text-transform: uppercase; text-align: center; }
+        
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .action-btn {
+            padding: 50px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            border: 8px solid #444;
+            border-radius: 25px;
+            background: #90CAF9; /* Matches the blue in your screenshot */
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn {
+            margin-top: 50px;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            background-color: #C6FF00; /* Matches the green 'back' button */
+            border: 4px solid #444;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* High Visibility Focus State */
+        .action-btn:focus, .back-btn:focus {
+            outline: 10px solid #764ba2;
+            background-color: #E1BEE7;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body onload="announcePage()">
+
+    <h1>Select Your Input Type</h1>
+
+    <div class="btn-container">
+        <button class="action-btn" 
+                onfocus="button_select('Keyboard')" 
+                onclick="button_click('keyboard');">
+            keyboard
+        </button>
+        
+        <button class="action-btn" 
+                onfocus="button_select('Speech')" 
+                onclick="button_click('speech');)">
+            speech
+        </button>
+    </div>
+
+    <button class="back-btn" onfocus="button_select('Back')" onclick="button_click('back')">
+        back
+    </button>
+
+    <script>
+        // Automatic Focus on load for immediate 'Enter' support
+        function announcePage() {
+            fetch('/speak?text=Select your input type. Keyboard or Speech?', {method: 'POST'});
+        }
+
+        function speak(label) {
+            fetch(`/speak?text=${label}`, {method: 'POST'});
+        }
+        
+        function button_click(choice) {
+            fetch(`/button_click?text=${choice}`, {method: 'POST'})
             // Add redirection logic here
         }
 
@@ -208,6 +310,124 @@ def get_landing_page_html():
             fetch(`/button_select?text=${choice}`, {method: 'POST'});
             // Add redirection logic here
         }
+
+        setInterval(() => {
+            fetch('/get_current_state')
+                .then(response => response.json())
+                .then(data => {
+                    const pythonPage = data.current_page;
+                    const browserPage = window.location.pathname;
+
+                    // If Python changed the state, move the browser automatically
+                    if (pythonPage !== browserPage) {
+                        window.location.href = pythonPage;
+                    }
+                });
+        }, 500);
+    </script>
+</body>
+</html>'''
+
+
+def get_browser_page_html():
+    """Returns the HTML for the URL browsing interface"""
+    return '''<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #FFFDE7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 { font-size: 2.5rem; color: #333; margin-bottom: 20px; }
+
+        .browser-container {
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Large, accessible input field */
+        .url-input {
+            padding: 30px;
+            font-size: 2rem;
+            border: 6px solid #444;
+            border-radius: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .url-input:focus {
+            outline: 6px solid #764ba2;
+            background-color: #F3E5F5;
+        }
+
+        .go-btn {
+            padding: 40px;
+            font-size: 3rem;
+            font-weight: bold;
+            background-color: #C6FF00; /* High visibility green */
+            border: 6px solid #444;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .go-btn:focus {
+            outline: 8px solid #764ba2;
+            background-color: #E1BEE7;
+            transform: scale(1.02);
+        }
+
+        .status-msg {
+            font-size: 1.5rem;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body onload="announceBrowser()">
+
+    <h1>Where would you like to go?</h1>
+    
+    <div class="browser-container">
+        <input type="text" id="urlInput" class="url-input" 
+               placeholder="Type website address here..."
+               onfocus="button_select('Type the website address')">
+        
+        <button class="go-btn" id="goBtn"
+                onfocus="button_select('Go to website')" 
+                onclick="button_click(document.getElementById('urlInput').value)">
+            GO
+        </button>
+    </div>
+
+    <p class="status-msg">Press <b>TAB</b> to switch, <b>ENTER</b> to select.</p>
+
+    <script>
+        function announceBrowser() {
+            fetch('/speak?text=Please type the website address or say it out loud.', {method: 'POST'});
+        }
+        
+        function button_click(choice) {
+            fetch(`/button_click?text=${choice}`, {method: 'POST'})
+            // Add redirection logic here
+        }
+
+        function button_select(choice) {
+            fetch(`/button_select?text=${choice}`, {method: 'POST'});
+            // Add redirection logic here
+        }
+
     </script>
 </body>
 </html>'''

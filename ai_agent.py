@@ -5,7 +5,7 @@ Handles all interactions with Google's Gemini API
 
 import json
 import google.generativeai as genai
-from config import config
+from config import Config
 
 class AIAgent:
     """Handles AI-powered command interpretation and action generation"""
@@ -13,11 +13,52 @@ class AIAgent:
     def __init__(self):
         """Initialize the AI agent with Gemini"""
         try:
-            genai.configure(api_key=config.GEMINI_API_KEY)
+            genai.configure(api_key=Config.GEMINI_API_KEY)
             self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
             print("✓ AI Agent initialized successfully")
         except Exception as e:
             raise Exception(f"ERROR [AIAgent.__init__]: Failed to initialize Gemini - {str(e)}")
+        
+    async def navigate_url(self, user_command):
+        """
+        Interprets user command to find a target URL.
+        Returns: {'url': str or None, 'description': str}
+        """
+        prompt = f"""
+        You are a navigation assistant for a simplified web browser.
+        Analyze the user's command and extract a target URL.
+        
+        Rules:
+        1. If the user mentions a specific website (e.g., "Google", "YouTube", "NUS"), 
+           provide the full HTTPS URL.
+        2. If the user command is vague or doesn't specify a destination, 
+           return null for the url.
+        3. Provide a brief, friendly description of what you are doing.
+
+        User Command: "{user_command}"
+
+        Return ONLY a JSON object in this format:
+        {{"url": "https://example.com", "description": "Navigating to example"}}
+        """
+        try:
+            # Using generation_config to enforce JSON mode
+            response = self.model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            
+            # Parse the JSON string from Gemini into a Python dictionary
+            result = json.loads(response.text)
+            
+            # Safety check: Ensure the keys exist
+            return {
+                "url": result.get("url"),
+                "description": result.get("description", "Processing your request.")
+            }
+
+        except Exception as e:
+            print(f"⚠️ [AIAgent]: Error interpreting command: {e}")
+            return {"url": None, "description": "I'm sorry, I couldn't understand that command."}
     
     async def interpret_command(self, command, page_context):
         """
@@ -105,3 +146,4 @@ Rules:
             
         except Exception as e:
             raise Exception(f"ERROR [AIAgent._parse_response]: Invalid response format - {str(e)}")
+        

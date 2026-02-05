@@ -9,11 +9,11 @@ from ai_agent import AIAgent
 class BrowserController:
     """High-level controller that coordinates browser and AI operations"""
     
-    def __init__(self):
+    def __init__(self, web_manager=None, ai_agent=None):
         """Initialize controller with web manager and AI agent"""
         try:
-            self.web_manager = WebManager()
-            self.ai_agent = AIAgent()
+            self.web_manager = web_manager if web_manager else WebManager()
+            self.ai_agent = ai_agent if ai_agent else AIAgent()
             print("✓ BrowserController initialized")
         except Exception as e:
             raise Exception(f"ERROR [BrowserController.__init__]: Initialization failed - {str(e)}")

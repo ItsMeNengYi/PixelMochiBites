@@ -35,6 +35,7 @@ class Config:
 
     INTERACTION_MODE = 'both' # Default
     INPUT_MODE = 'keyboard'   # Default
+    PAGE = "/"
 
     @classmethod
     def set_setting(cls, key, value):
@@ -58,6 +59,24 @@ class Config:
             raise ValueError("ERROR [Config]: GEMINI_API_KEY not found in environment variables")
         return True
     
-config = Config()
-
+    def next_page():
+        if Config.PAGE == "/":
+            Config.PAGE = "/input_selection"
+            return "/input_selection"
+        if Config.PAGE == "/input_selection":
+            Config.PAGE = "/browser"
+            return "/browser"
+        if Config.PAGE == "/browser":
+            return None
+        
+    def previous_page():
+        if Config.PAGE == "/browser":
+            Config.PAGE = "/input_selection"
+            return "/input_selection"
+        if Config.PAGE == "/input_selection":
+            Config.PAGE = "/"
+            return "/"
+        if Config.PAGE == "/":
+            return None
+    
 # Export config instance
