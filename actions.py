@@ -356,7 +356,10 @@ class BrowserActions:
             print(f"✓ Dragged {source_selector} to {target_selector}")
         except Exception as e:
             raise Exception(f"ERROR [BrowserActions.drag_and_drop]: Failed to drag '{source_selector}' to '{target_selector}' - {str(e)}")
-
+        
+    def get_all_actions(self):
+        """Return a list of all available action methods"""
+        return [method for method in dir(self) if callable(getattr(self, method)) and not method.startswith("_")]
 
 class ActionExecutor:
     """Executes a list of actions from the AI"""

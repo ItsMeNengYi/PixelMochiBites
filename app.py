@@ -12,6 +12,7 @@ from flask_cors import CORS
 from config import Config
 from browser_controller import BrowserController
 from html_templates import get_landing_page_html
+from voice_agent import VoiceAssistant
 
 # Validate configuration
 try:
@@ -25,8 +26,9 @@ except Exception as e:
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Initialize browser controller
+# Initialize agents
 controller = BrowserController()
+voice_agent = VoiceAssistant()
 
 @app.before_request
 def handle_preflight():
@@ -239,6 +241,27 @@ def restore_page():
             "success": False,
             "message": str(e)
         }), 500
+    
+@app.route('/speak', methods=['POST'])
+def speak_route():
+    text = request.args.get('text', '')
+    # Use speak_interrupt so it doesn't overlap if they tab quickly
+    voice_agent.speak(text)
+    return jsonify(success=True)
+
+@app.route('/button_select', methods=['POST'])
+def select_route():
+    text = request.args.get('text', '')
+    # Use speak_interrupt so it doesn't overlap if they tab quickly
+    voice_agent.speak("Focus " + text)
+    return jsonify(success=True)
+
+@app.route('/button_click', methods=['POST'])
+def click_route():
+    text = request.args.get('text', '')
+    # Use speak_interrupt so it doesn't overlap if they tab quickly
+    voice_agent.speak("Selected " + text)
+    return jsonify(success=True)
 
 @app.errorhandler(404)
 def not_found(e):

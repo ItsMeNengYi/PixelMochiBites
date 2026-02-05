@@ -32,6 +32,24 @@ class Config:
     SIMPLIFY_TIMEOUT = 10
     RESTORE_TIMEOUT = 10
     CLICK_TIMEOUT = 5000  # milliseconds
+
+    INTERACTION_MODE = 'both' # Default
+    INPUT_MODE = 'keyboard'   # Default
+
+    @classmethod
+    def set_setting(cls, key, value):
+        """
+        Dynamically set a configuration value.
+        Usage: Config.set_setting('INTERACTION_MODE', 'see')
+        """
+        # Convert key to uppercase to match class attribute naming convention
+        key = key.upper()
+        
+        if hasattr(cls, key):
+            setattr(cls, key, value)
+            print(f"⚙️ [Config]: {key} updated to -> {value}")
+        else:
+            print(f"⚠️ [Config]: Setting '{key}' does not exist.")
     
     @classmethod
     def validate(cls):
@@ -39,3 +57,7 @@ class Config:
         if not cls.GEMINI_API_KEY:
             raise ValueError("ERROR [Config]: GEMINI_API_KEY not found in environment variables")
         return True
+    
+config = Config()
+
+# Export config instance

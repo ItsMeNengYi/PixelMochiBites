@@ -119,98 +119,95 @@ def get_overlay_script():
 def get_landing_page_html():
     """Returns the HTML for the landing page"""
     return '''<!DOCTYPE html>
-    <html>
-    <head>
-        <title>AI Browser Control</title>
-        <style>
-            body { 
-                font-family: -apple-system, sans-serif; 
-                margin: 0; 
-                padding: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh; 
-                display: flex; 
-                justify-content: center; 
-                align-items: center; 
-            }
-            .container { 
-                background: white; 
-                padding: 40px; 
-                border-radius: 16px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
-                max-width: 500px; 
-                width: 100%; 
-            }
-            h1 { 
-                margin: 0 0 10px 0; 
-                color: #333; 
-            }
-            p { 
-                color: #666; 
-                margin-bottom: 30px; 
-            }
-            button { 
-                width: 100%; 
-                padding: 15px; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white; 
-                border: none; 
-                border-radius: 8px; 
-                font-size: 16px; 
-                font-weight: 600;
-                cursor: pointer; 
-                transition: transform 0.2s; 
-            }
-            button:hover:not(:disabled) { 
-                transform: translateY(-2px); 
-            }
-            button:disabled { 
-                opacity: 0.6; 
-                cursor: not-allowed; 
-            }
-            #status { 
-                margin-top: 20px; 
-                padding: 15px; 
-                background: #f0f0f0; 
-                border-radius: 8px; 
-                display: none; 
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🤖 AI Browser Control</h1>
-            <p>Click the button below to start the browser with the AI control overlay</p>
-            <button id="startBtn" onclick="startBrowser()">Start Browser</button>
-            <div id="status"></div>
-        </div>
-        <script>
-            async function startBrowser() {
-                const btn = document.getElementById('startBtn');
-                const status = document.getElementById('status');
-                btn.disabled = true; 
-                btn.textContent = 'Starting browser...';
-                status.style.display = 'block'; 
-                status.textContent = '⚙️ Launching browser...';
+<html>
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #FFFDE7; /* Soft yellow is easier on the eyes */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+        }
+        h1 { font-size: 3rem; margin-bottom: 10px; }
+        p { font-size: 1.5rem; color: #333; margin-bottom: 40px; }
+
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .action-btn {
+            padding: 40px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            border: 8px solid #ccc;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* High Visibility Focus State */
+        .action-btn:focus {
+            outline: none;
+            border-color: #764ba2;
+            background-color: #E1BEE7;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body onload="announceWelcome()">
+
+    <h1>Welcome</h1>
+    <p>Use <b>TAB</b> to move and <b>ENTER</b> to select.</p>
+
+    <p><b>Can you</b></p>
+    <div class="btn-container">
+        <button class="action-btn" onfocus="button_select('See')" onclick="button_click('See')">
+            1. See
+        </button>
+        <button class="action-btn" onfocus="button_select('Hear')" onclick="button_click('Hear')">
+            2. Hear
+        </button>
+        <button class="action-btn" onfocus="button_select('Both')" onclick="button_click('Both')">
+            3. Both
+        </button>
+    </div>
+
+    <script>
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                // Find the element currently focused by Tab
+                const focusedElement = document.activeElement;
                 
-                try {
-                    const response = await fetch('/start', {method: 'POST'});
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        status.textContent = '✅ Browser started! Look for the control overlay in the top-right corner.';
-                        btn.textContent = 'Browser Running';
-                    } else {
-                        status.textContent = '❌ ' + result.message;
-                        btn.disabled = false; 
-                        btn.textContent = 'Start Browser';
-                    }
-                } catch (error) {
-                    status.textContent = '❌ Error: ' + error.message;
-                    btn.disabled = false; 
-                    btn.textContent = 'Start Browser';
+                // If it's one of our buttons, trigger the click
+                if (focusedElement && focusedElement.classList.contains('action-btn')) {
+                    focusedElement.click();
                 }
             }
-        </script>
-    </body>
-    </html>'''
+        });
+        function announceWelcome() {
+            fetch('/speak?text=Welcome to your AI Assistance. How would you like to interact with me? Can you, See, Hea ,or Both? , Click Tab to switch button, enter to click button', {method: 'POST'});
+        }
+
+        function speak(label) {
+            fetch(`/speak?text=${label}`, {method: 'POST'});
+        }
+
+        function button_click(choice) {
+            fetch(`/button_click?text=${choice}`, {method: 'POST'});
+            // Add redirection logic here
+        }
+
+        function button_select(choice) {
+            fetch(`/button_select?text=${choice}`, {method: 'POST'});
+            // Add redirection logic here
+        }
+    </script>
+</body>
+</html>'''

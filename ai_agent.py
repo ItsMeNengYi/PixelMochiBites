@@ -5,7 +5,7 @@ Handles all interactions with Google's Gemini API
 
 import json
 import google.generativeai as genai
-from config import Config
+from config import config
 
 class AIAgent:
     """Handles AI-powered command interpretation and action generation"""
@@ -13,7 +13,7 @@ class AIAgent:
     def __init__(self):
         """Initialize the AI agent with Gemini"""
         try:
-            genai.configure(api_key=Config.GEMINI_API_KEY)
+            genai.configure(api_key=config.GEMINI_API_KEY)
             self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
             print("✓ AI Agent initialized successfully")
         except Exception as e:
